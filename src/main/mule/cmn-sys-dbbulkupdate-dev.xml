@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="f6a4a0cf-5c23-409e-981e-6ea9df9b8fdc" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="b721b062-0992-4604-9e5c-54313a484d39" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="seble2010" database="craftonlineshopping" />
+	</db:config>
+	<flow name="cmn-sys-dbbulkupdate-devFlow" doc:id="ea298cba-5a50-4000-a879-7eb3ac8ccc8b" >
+		<http:listener doc:name="Listener" doc:id="953e93d4-aded-453d-ab99-3983af17f0ba" config-ref="HTTP_Listener_config" path="/bulkupdate"/>
+		<db:bulk-update doc:name="Bulk update" doc:id="e44ddb11-d6e0-446a-b99d-4d00484cac4e" config-ref="Database_Config">
+			<db:bulk-input-parameters ><![CDATA[#[payload map {
+	userid: $.userid, 
+	name: $.name, 
+	lastname: $.lastname, 
+	middleinitial: $.middleinitial, 
+	gender: $.gender, 
+	phonenumber: $.phonenumber, 
+	country: $.country,
+	postalcode: $.postalcode
+}]]]></db:bulk-input-parameters>
+			<db:sql ><![CDATA[update user set
+name=:name, lastname=:lastname, middleinitial=:middleinitial, 
+gender=:gender, phonenumber=:phonenumber, country=:country, postalcode=:postalcode where userid=:userid;]]></db:sql>
+		</db:bulk-update>
+		<set-payload value="Done!" doc:name="Set Payload" doc:id="5b4a0b16-23c1-4f5e-805e-d8f115646e74" />
+	</flow>
+	<flow name="cmn-sys-dbbulkupdate-devFlow1" doc:id="4acd5674-9977-4b40-9501-d1869edd8279" >
+		<http:listener doc:name="Listener" doc:id="e26d7fb2-6937-4b2c-ac7e-1f957592dd0f" config-ref="HTTP_Listener_config" path="/bulkdelete"/>
+		<db:bulk-delete doc:name="Bulk delete" doc:id="bdad59ab-de4c-4223-87d1-745807337d9a" >
+			<db:sql ><![CDATA[delete from user ]]></db:sql>
+		</db:bulk-delete>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="147ad390-781f-489c-874b-b277bfbc6035" />
+	</flow>
+</mule>
